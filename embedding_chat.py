@@ -9,6 +9,8 @@ from langchain.llms import CTransformers
 import pinecone
 from pinecone import Pinecone, ServerlessSpec
 import time
+from sentence_transformers import SentenceTransformer
+import os
 
 PINECONE_API_KEY = "3c3dfb50-66f5-4212-bd6e-f26b5f964b8d"
 PINECONE_API_HOST = "https://aiagent-axzviig.svc.aped-4627-b74a.pinecone.io"
@@ -36,8 +38,7 @@ text_chunks = text_split(documents)
 
 #print("Length of my chunks:", len(text_chunks))
 
-from sentence_transformers import SentenceTransformer
-import os
+
 # Load the model
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
 
@@ -87,7 +88,7 @@ def search_index(query):
         raise ValueError("Query embedding is not in the correct format. Ensure it's a list of floats.")
     
     # Search the index
-    result = index.query(vector=query_embedding, top_k=5, include_values=True, include_metadata=True)
+    result = index.query(vector=query_embedding, top_k=1, include_values=True, include_metadata=True)
     return result
 
 # Example query
