@@ -1,27 +1,69 @@
 import streamlit as st
+import tensorflow as tf
 from langchain import PromptTemplate
 from langchain.chains import RetrievalQA
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.document_loaders import PyPDFLoader, DirectoryLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
+from pinecone import Pinecone as PineconeClient
 from langchain.vectorstores import Pinecone
 import pinecone
-import os
-import pinecone
 from pinecone import Pinecone
+import collections
+import collections.abc
+collections.Iterable = collections.abc.Iterable
+import pinecone
+# ... existing code ...
+import os
 from dotenv import load_dotenv
 import google.generativeai as genai
+import doctr
+from doctr.models import ocr_predictor
+from doctr.io import DocumentFile
+from collections.abc import Iterable
+from collections import Iterable
+from collections.abc import Iterable
+tf.compat.v1.reset_default_graph()
+os.environ['USE_TORCH'] = 'True'
+import rapidfuzz.distance as string_metric
+import sys
+
+# Redirect the import from rapidfuzz.string_metric to rapidfuzz.distance
+sys.modules['rapidfuzz.string_metric'] = string_metric
+
 
 
 load_dotenv()
 os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
-# Function to load PDF files
+class Document:
+    def __init__(self, page_content, metadata=None):
+        self.page_content = page_content
+        self.metadata = metadata or {}
+
+# Initialize the OCR model
+def init_ocr_model():
+    try:
+        return ocr_predictor(det_arch='db_mobilenet_v3_large', reco_arch='crnn_vgg16_bn', pretrained=True)
+    except Exception as e:
+        print(f"Error initializing OCR model: {e}")
+        return None
+
+ocr_model = init_ocr_model()
+
+# Function to load PDF files using DocTR OCR
 def load_pdf(data):
-    loader = DirectoryLoader(data, glob="*.pdf", loader_cls=PyPDFLoader)
-    documents = loader.load()
+    documents = []
+    if ocr_model:
+        for file_path in data:
+            doc = DocumentFile.from_pdf(file_path)
+            ocr_result = ocr_model(doc)
+            for page in ocr_result.pages:
+                page_text = page.render()
+                metadata = {"file_path": file_path, "page_number": page.page_idx}
+                documents.append(Document(page_text, metadata))  # Wrap in Document class with metadata
     return documents
 
 # Function to split documents into chunks
@@ -94,11 +136,14 @@ query = st.text_input("Enter your query")
 if uploaded_files and query:
     temp_dir = "temp_pdfs"
     os.makedirs(temp_dir, exist_ok=True)
+    file_paths = []
     for uploaded_file in uploaded_files:
-        with open(os.path.join(temp_dir, uploaded_file.name), "wb") as f:
+        file_path = os.path.join(temp_dir, uploaded_file.name)
+        with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
+        file_paths.append(file_path)
 
-    documents = load_pdf(temp_dir)
+    documents = load_pdf(file_paths)
     text_chunks = text_split(documents)
     text_embeddings = [embeddings.embed_query(t.page_content) for t in text_chunks]
     items = [(str(i), embedding) for i, embedding in enumerate(text_embeddings)]
@@ -110,10 +155,14 @@ if uploaded_files and query:
         top_matches = result['matches'][:5]  # Get the top 5 matches
         st.write("Top Results:")
         for match in top_matches:
-            st.write(f"ID: {match['id']}, Score: {match['score']}")
-            st.write(f"Content: {text_chunks[int(match['id'])].page_content}")
+            match_id = int(match['id'])
+            if match_id < len(text_chunks):
+                st.write(f"ID: {match['id']}, Score: {match['score']}")
+                st.write(f"Content: {text_chunks[match_id].page_content}")
+            else:
+                st.write(f"ID: {match['id']} is out of range for text_chunks")
 
-        context = " ".join([text_chunks[int(match['id'])].page_content for match in top_matches])
+        context = " ".join([text_chunks[int(match['id'])].page_content for match in top_matches if int(match['id']) < len(text_chunks)])
         detailed_response = get_gemini_response(context=context, question=query)
         
         st.write(f"This is query {query}:")
