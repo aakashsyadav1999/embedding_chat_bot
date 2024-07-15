@@ -8,13 +8,11 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
 from pinecone import Pinecone as PineconeClient
 from langchain.vectorstores import Pinecone
-import pinecone
 from pinecone import Pinecone
 import collections
 import collections.abc
 collections.Iterable = collections.abc.Iterable
 import pinecone
-# ... existing code ...
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
