@@ -2,6 +2,9 @@
 
 This application allows users to upload PDF files, extract text using OCR, and query the extracted text using a search index. The app uses various machine learning models and APIs to provide detailed responses to user queries.
 
+*** gemini_app.py *** is the final file.
+
+
 ## Features
 
 - Upload multiple PDF files
@@ -68,3 +71,20 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - [Doctr](https://mindee.github.io/doctr/)
 - [RapidFuzz](https://github.com/maxbachmann/RapidFuzz)
 - [Google Generative AI](https://ai.google/)
+
+## Docker Pull Command:
+
+docker pull aakashsyadav1999/embedding_chat_bot
+
+## Verify the Image:
+docker images
+
+## Docker Run Command:
+docker run -p 8501:8501 aakashsyadav1999/embedding_chat
+
+## Check Logs if Issues Arise:
+docker ps -a  # Find your container ID
+docker logs <container_id>
+
+## Run in Interactive Mode (if needed):
+docker run -it -p 8501:8501 aakashsyadav1999/embedding_chat_bot
