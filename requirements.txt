@@ -15,14 +15,15 @@ google-generativeai
 pytesseract
 pdf2image
 opencv-python
-PyMuPDF 
-flatbuffers>=23.5.26
+#PyMuPDF
+PyMuPDF==1.20.2
+
+#flatbuffers>=23.5.26
 keras==2.9.0
 tensorboard==2.9.1
 Pillow==9.5.0
-python-doctr
 transformers
-tensorflow==2.9.1
+tensorflow==2.12.0
 torch
 matplotlib-venn
 cartopy
@@ -34,6 +35,9 @@ tf2onnx==1.13.0
 onnx==1.12.0
 googleapis-common-protos==1.56.4
 protobuf==3.19.6
+paddleocr>=2.0.1
+rapidfuzz==1.5.0
+
 
 #export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
 
