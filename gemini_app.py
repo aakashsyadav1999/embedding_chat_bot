@@ -17,18 +17,18 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 import doctr
+#from doctr.models import ocr_predictor
 from doctr.models import ocr_predictor
 from doctr.io import DocumentFile
 from collections.abc import Iterable
 from collections import Iterable
 from collections.abc import Iterable
 tf.compat.v1.reset_default_graph()
+tf.keras.backend.clear_session()
 os.environ['USE_TORCH'] = 'True'
-import rapidfuzz.distance as string_metric
-import sys
 
 # Redirect the import from rapidfuzz.string_metric to rapidfuzz.distance
-sys.modules['rapidfuzz.string_metric'] = string_metric
+from rapidfuzz.distance import DamerauLevenshtein
 
 
 
